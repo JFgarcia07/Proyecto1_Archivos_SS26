@@ -27,7 +27,7 @@ public class ProveedorDB {
 
     private final String QUERY_BUSCAR_PROVEEDOR_POR_ID = "SELECT * FROM Proveedor WHERE id_proveedor = ?";
     public Proveedor buscarPorId(String idProveedor){
-        List<Proveedor> resultado = jdbcTemplate.query(QUERY_BUSCAR_PROVEEDOR_POR_ID, new ProveedorRowMapper());
+        List<Proveedor> resultado = jdbcTemplate.query(QUERY_BUSCAR_PROVEEDOR_POR_ID, new ProveedorRowMapper(), idProveedor);
         return resultado.isEmpty() ? null : resultado.get(0);
     }
 
