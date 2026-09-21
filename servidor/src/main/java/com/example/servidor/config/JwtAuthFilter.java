@@ -25,9 +25,8 @@ import jakarta.servlet.http.HttpServletResponse;
  * JWT en el header Authorization, lo valida, y si es correcto, registra
  * al usuario como autenticado ante Spring Security para esa peticion.
  *
- * Reemplaza por completo la necesidad de SesionGlobal: la identidad
- * del usuario se reconstruye a partir del token en cada peticion,
- * sin depender de ninguna variable compartida del servidor.
+ * El usuario autenticado queda identificado por su idUsuario, lo que
+ * permite saber quien realizo cada accion (por ejemplo, en la bitacora).
  *
  * @author jfgarcianata
  */
@@ -57,14 +56,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         try {
             Claims claims = jwtService.validarToken(token);
 
-            String email = claims.getSubject();
+            String idUsuario = claims.get("idUsuario", String.class);
             Integer idRol = claims.get("idRol", Integer.class);
 
             List<GrantedAuthority> authorities = new ArrayList<>();
             authorities.add(new SimpleGrantedAuthority("ROLE_" + idRol));
 
             UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(email, null, authorities);
+                    new UsernamePasswordAuthenticationToken(idUsuario, null, authorities);
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -74,5 +73,4 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
-    
 }

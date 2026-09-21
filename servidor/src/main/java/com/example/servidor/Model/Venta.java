@@ -13,6 +13,7 @@ public class Venta {
     private Double total;
     private String nombreCliente;
     private String nitCliente;
+    private String nombreUsuario;
     private List<DetalleVenta> detalles;
 
     public Venta() {
@@ -88,6 +89,14 @@ public class Venta {
 
     public void setNitCliente(String nitCliente) {
         this.nitCliente = nitCliente;
+    }
+
+    public String getNombreUsuario() {
+        return nombreUsuario;
+    }
+
+    public void setNombreUsuario(String nombreUsuario) {
+        this.nombreUsuario = nombreUsuario;
     }
 
     public List<DetalleVenta> getDetalles() {
