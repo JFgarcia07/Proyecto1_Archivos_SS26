@@ -16,18 +16,20 @@ public class VentaDB {
     }
 
     private final String QUERY_LISTAR_VENTAS =
-        "SELECT v.*, c.nombre, c.nit " +
+        "SELECT v.*, c.nombre, c.nit, u.nombre_usuario " +
         "FROM Venta v " +
         "INNER JOIN Cliente c ON v.id_cliente = c.id_cliente " +
+        "INNER JOIN Usuario u ON v.id_usuario = u.id_usuario " +
         "ORDER BY v.id_venta DESC";
-    public List<Venta> listarVentas(){
+    public List<Venta> listarVentas() {
         return jdbcTemplate.query(QUERY_LISTAR_VENTAS, new VentaRowMapper());
     }
 
     private final String QUERY_BUSCAR_VENTA_POR_ID =
-        "SELECT v.*, c.nombre, c.nit " +
+        "SELECT v.*, c.nombre, c.nit, u.nombre_usuario " +
         "FROM Venta v " +
         "INNER JOIN Cliente c ON v.id_cliente = c.id_cliente " +
+        "INNER JOIN Usuario u ON v.id_usuario = u.id_usuario " +
         "WHERE v.id_venta = ?";
     public Venta buscarPorId(Integer idVenta) {
         List<Venta> resultado = jdbcTemplate.query(
@@ -87,12 +89,7 @@ public class VentaDB {
         "INSERT INTO MovimientoInventario (id_producto, tipo_movimiento, cantidad, fecha, origen, id_referencia) " +
         "VALUES (?, 'SALIDA', ?, now(), 'VENTA', ?)";
     public void insertarMovimientoSalida(String idProducto, Double cantidad, Integer idVenta) {
-        jdbcTemplate.update(
-            QUERY_INSERTAR_MOVIMIENTO,
-            idProducto,
-            cantidad,
-            idVenta
-        );
+        jdbcTemplate.update(QUERY_INSERTAR_MOVIMIENTO, idProducto, cantidad, idVenta);
     }
 
     private final String QUERY_DISMINUIR_STOCK = "UPDATE Producto SET stock = stock - ? WHERE id_producto = ?";

@@ -21,6 +21,7 @@ public class VentaRowMapper implements RowMapper<Venta> {
         venta.setTotal(rs.getDouble("total"));
         venta.setNombreCliente(rs.getString("nombre"));
         venta.setNitCliente(rs.getString("nit"));
+        venta.setNombreUsuario(rs.getString("nombre_usuario"));
         return venta;
     }
 }
