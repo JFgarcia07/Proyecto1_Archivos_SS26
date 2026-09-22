@@ -1,0 +1,249 @@
+<app-navbar></app-navbar>
+
+<div class="container py-5">
+  <h1 class="text-center mb-4 fw-bold">Inventario</h1>
+
+  @if (mensajeError()) {
+    <div class="alert alert-danger">{{ mensajeError() }}</div>
+  }
+
+  <!-- ============ RESUMEN ============ -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card shadow border-0 text-center h-100">
+        <div class="card-body">
+          <p class="text-muted mb-1">Productos activos</p>
+          <h3 class="fw-bold mb-0">{{ existencias().length }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow border-0 text-center h-100">
+        <div class="card-body">
+          <p class="text-muted mb-1">Unidades en existencia</p>
+          <h3 class="fw-bold mb-0">{{ totalUnidades() }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow border-0 text-center h-100 border-start border-warning border-4">
+        <div class="card-body">
+          <p class="text-muted mb-1">Stock bajo (≤ {{ stockMinimo() }})</p>
+          <h3 class="fw-bold mb-0 text-warning">{{ alertas().length }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow border-0 text-center h-100 border-start border-danger border-4">
+        <div class="card-body">
+          <p class="text-muted mb-1">Agotados</p>
+          <h3 class="fw-bold mb-0 text-danger">{{ totalAgotados() }}</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ALERTAS ============ -->
+  <div class="card shadow border-0 mb-4">
+    <div class="card-header bg-warning py-3">
+      <span class="fs-5 fw-semibold">Existencias que requieren atención</span>
+    </div>
+
+    <div class="card-body p-0">
+      @if (alertas().length > 0) {
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4">Código</th>
+                <th>Producto</th>
+                <th>Categoría</th>
+                <th class="text-end">Existencia</th>
+                <th class="text-end pe-4">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (producto of alertas(); track producto.idProducto) {
+                <tr>
+                  <td class="ps-4">{{ producto.idProducto }}</td>
+                  <td class="fw-semibold">{{ producto.nombreProducto }}</td>
+                  <td>{{ producto.categoria }}</td>
+                  <td class="text-end fw-bold">{{ producto.stock }}</td>
+                  <td class="text-end pe-4">
+                    <span class="badge" [ngClass]="claseEstado(producto.stock)">
+                      {{ estadoStock(producto.stock) }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="text-center py-4">
+          <p class="text-success mb-0">Todos los productos tienen existencias suficientes.</p>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- ============ EXISTENCIAS ============ -->
+  <div class="card shadow border-0 mb-4">
+    <div class="card-header bg-primary text-white py-3">
+      <span class="fs-5 fw-semibold">Existencias actuales</span>
+    </div>
+
+    <div class="card-body p-0">
+      @if (cargandoExistencias()) {
+        <div class="text-center py-5">
+          <p class="text-muted mb-0">Cargando existencias...</p>
+        </div>
+      } @else if (existencias().length > 0) {
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4">Código</th>
+                <th>Producto</th>
+                <th>Categoría</th>
+                <th class="text-end">Existencia</th>
+                <th class="text-center">Estado</th>
+                <th class="text-end pe-4">Historial</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (producto of existencias(); track producto.idProducto) {
+                <tr>
+                  <td class="ps-4">{{ producto.idProducto }}</td>
+                  <td class="fw-semibold">{{ producto.nombreProducto }}</td>
+                  <td>{{ producto.categoria }}</td>
+                  <td class="text-end">{{ producto.stock }}</td>
+                  <td class="text-center">
+                    <span class="badge" [ngClass]="claseEstado(producto.stock)">
+                      {{ estadoStock(producto.stock) }}
+                    </span>
+                  </td>
+                  <td class="text-end pe-4">
+                    <button type="button" class="btn btn-outline-primary btn-sm"
+                            (click)="verMovimientosDe(producto.idProducto)">
+                      Ver movimientos
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="text-center py-5">
+          <p class="text-muted mb-0">No hay productos registrados.</p>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- ============ MOVIMIENTOS ============ -->
+  <div class="card shadow border-0" id="seccion-movimientos">
+    <div class="card-header bg-dark text-white py-3">
+      <span class="fs-5 fw-semibold">Historial de movimientos ({{ movimientos().length }})</span>
+    </div>
+
+    <div class="card-body border-bottom">
+      <div class="row g-3 align-items-end">
+
+        <div class="col-md-3">
+          <label for="filtroProducto" class="form-label">Producto</label>
+          <select class="form-select" id="filtroProducto" name="filtroProducto" [(ngModel)]="filtroProducto">
+            <option value="">Todos</option>
+            @for (producto of existencias(); track producto.idProducto) {
+              <option [value]="producto.idProducto">{{ producto.idProducto }} - {{ producto.nombreProducto }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="col-md-2">
+          <label for="filtroTipo" class="form-label">Tipo</label>
+          <select class="form-select" id="filtroTipo" name="filtroTipo" [(ngModel)]="filtroTipo">
+            <option value="">Todos</option>
+            <option value="ENTRADA">Entradas</option>
+            <option value="SALIDA">Salidas</option>
+          </select>
+        </div>
+
+        <div class="col-md-2">
+          <label for="fechaInicio" class="form-label">Desde</label>
+          <input type="date" class="form-control" id="fechaInicio" name="fechaInicio" [(ngModel)]="fechaInicio">
+        </div>
+
+        <div class="col-md-2">
+          <label for="fechaFin" class="form-label">Hasta</label>
+          <input type="date" class="form-control" id="fechaFin" name="fechaFin" [(ngModel)]="fechaFin">
+        </div>
+
+        <div class="col-md-3 d-flex gap-2">
+          <button type="button" class="btn btn-primary w-100" (click)="cargarMovimientos()">Filtrar</button>
+          <button type="button" class="btn btn-outline-secondary w-100" (click)="limpiarFiltros()">Limpiar</button>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card-body p-0">
+      @if (cargandoMovimientos()) {
+        <div class="text-center py-5">
+          <p class="text-muted mb-0">Cargando movimientos...</p>
+        </div>
+      } @else if (errorMovimientos()) {
+        <div class="text-center py-5">
+          <p class="text-danger mb-0">{{ errorMovimientos() }}</p>
+        </div>
+      } @else if (movimientos().length > 0) {
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4">Fecha</th>
+                <th>Producto</th>
+                <th class="text-center">Tipo</th>
+                <th class="text-end">Cantidad</th>
+                <th>Origen</th>
+                <th>Proveedor / Cliente</th>
+                <th class="pe-4">Registró</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (mov of movimientos(); track mov.idMovimiento) {
+                <tr>
+                  <td class="ps-4 text-nowrap">{{ formatearFecha(mov.fecha) }}</td>
+                  <td>
+                    <span class="fw-semibold">{{ mov.nombreProducto }}</span><br>
+                    <small class="text-muted">{{ mov.idProducto }}</small>
+                  </td>
+                  <td class="text-center">
+                    @if (mov.tipoMovimiento === 'ENTRADA') {
+                      <span class="badge bg-success">ENTRADA</span>
+                    } @else {
+                      <span class="badge bg-danger">SALIDA</span>
+                    }
+                  </td>
+                  <td class="text-end fw-bold"
+                      [ngClass]="mov.tipoMovimiento === 'ENTRADA' ? 'text-success' : 'text-danger'">
+                    {{ mov.tipoMovimiento === 'ENTRADA' ? '+' : '-' }}{{ mov.cantidad }}
+                  </td>
+                  <td>{{ textoOrigen(mov) }}</td>
+                  <td>{{ mov.tercero }}</td>
+                  <td class="pe-4">{{ mov.idUsuario }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="text-center py-5">
+          <p class="text-muted mb-0">No hay movimientos para los filtros seleccionados.</p>
+        </div>
+      }
+    </div>
+  </div>
+
+</div>
