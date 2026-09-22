@@ -13,15 +13,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.servidor.Model.Proveedor;
 import com.example.servidor.Services.ProveedorService;
+import com.example.servidor.Services.LogService;
 
 @RestController 
 @RequestMapping("/api/proveedores")
 public class ProveedorController {
     
     private final ProveedorService proveedorService;
+    private final LogService logService;
 
-    public ProveedorController(ProveedorService proveedorService) {
+    public ProveedorController(ProveedorService proveedorService, LogService logService) {
         this.proveedorService = proveedorService;
+        this.logService = logService;
     }
 
     @GetMapping
@@ -51,6 +54,8 @@ public class ProveedorController {
         if (error != null) {
             return ResponseEntity.badRequest().body(error);
         }
+        logService.registrar(LogService.ACCION_CREAR, LogService.MODULO_PROVEEDORES,
+            "Creo el proveedor " + proveedor.getIdProveedor() + " - " + proveedor.getNombreProveedor());
         return ResponseEntity.ok("Proveedor creado correctamente");
     }
 
@@ -62,6 +67,8 @@ public class ProveedorController {
         if (error != null) {
             return ResponseEntity.badRequest().body(error);
         }
+        logService.registrar(LogService.ACCION_ACTUALIZAR, LogService.MODULO_PROVEEDORES,
+            "Actualizo el proveedor " + id + " - " + proveedor.getNombreProveedor());
         return ResponseEntity.ok("Proveedor actualizado correctamente");
     }
 
@@ -72,6 +79,8 @@ public class ProveedorController {
         if (error != null) {
             return ResponseEntity.badRequest().body(error);
         }
+        logService.registrar(LogService.ACCION_DESACTIVAR, LogService.MODULO_PROVEEDORES,
+            "Desactivo el proveedor " + id);
         return ResponseEntity.ok("Proveedor desactivado correctamente");
     }
 }

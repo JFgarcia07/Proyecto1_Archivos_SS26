@@ -13,15 +13,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.servidor.Model.Cliente;
 import com.example.servidor.Services.ClienteService;
+import com.example.servidor.Services.LogService;
+
 
 @RestController 
 @RequestMapping("/api/clientes")
 public class ClienteController {
 
     private final ClienteService clienteService;
+    private final LogService logService;
 
-    public ClienteController(ClienteService clienteService) {
+    public ClienteController(ClienteService clienteService, LogService logService) {
         this.clienteService = clienteService;
+        this.logService = logService;
     }
 
     @GetMapping
@@ -51,6 +55,8 @@ public class ClienteController {
         if (error != null) {
             return ResponseEntity.badRequest().body(error);
         }
+        logService.registrar(LogService.ACCION_CREAR, LogService.MODULO_CLIENTES,
+            "Creo el cliente " + cliente.getNombre() + " (NIT " + cliente.getNit() + ")");
         return ResponseEntity.ok("Cliente creado correctamente");
     }
 
@@ -62,6 +68,8 @@ public class ClienteController {
         if (error != null) {
             return ResponseEntity.badRequest().body(error);
         }
+        logService.registrar(LogService.ACCION_ACTUALIZAR, LogService.MODULO_CLIENTES,
+            "Actualizo el cliente " + id + " - " + cliente.getNombre());
         return ResponseEntity.ok("Cliente actualizado correctamente");
     }
 
@@ -72,6 +80,8 @@ public class ClienteController {
         if (error != null) {
             return ResponseEntity.badRequest().body(error);
         }
+        logService.registrar(LogService.ACCION_DESACTIVAR, LogService.MODULO_CLIENTES,
+            "Desactivo el cliente " + id);
         return ResponseEntity.ok("Cliente desactivado correctamente");
     }
 }

@@ -77,7 +77,8 @@ public class CompraService {
             compraDB.insertarMovimientoEntrada(detalle.getIdProducto(), detalle.getCantidad(), idCompra);
             compraDB.aumentarStock(detalle.getIdProducto(), detalle.getCantidad());
         }
-
+        
+        compra.setIdCompra(idCompra);
         return null;
     }
 
