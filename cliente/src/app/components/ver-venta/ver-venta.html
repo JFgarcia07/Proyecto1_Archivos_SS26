@@ -1,0 +1,102 @@
+<app-navbar></app-navbar>
+
+<div class="container py-5">
+  <h1 class="text-center mb-4 fw-bold">Detalle de Venta</h1>
+
+  @if (cargando()) {
+    <div class="text-center py-5">
+      <p class="text-muted mb-0">Cargando venta...</p>
+    </div>
+  } @else if (mensajeError()) {
+    <div class="text-center py-5">
+      <p class="text-danger mb-0">{{ mensajeError() }}</p>
+    </div>
+  } @else if (venta()) {
+
+    <div class="card shadow border-0 mb-4">
+      <div class="card-header bg-primary text-white py-3">
+        <span class="fs-5 fw-semibold">Venta No. {{ venta()!.idVenta }}</span>
+      </div>
+
+      <div class="card-body p-4">
+        <div class="row">
+          <div class="col-md-3 mb-2">
+            <strong>Cliente:</strong><br>
+            {{ venta()!.nombreCliente }}
+          </div>
+          <div class="col-md-3 mb-2">
+            <strong>NIT:</strong><br>
+            {{ venta()!.nitCliente }}
+          </div>
+          <div class="col-md-3 mb-2">
+            <strong>Fecha:</strong><br>
+            {{ formatearFecha(venta()!.fecha) }}
+          </div>
+          <div class="col-md-3 mb-2">
+            <strong>Registrada por:</strong><br>
+            {{ venta()!.nombreUsuario }} ({{ venta()!.idUsuario }})
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow border-0 mb-4">
+      <div class="card-header bg-dark text-white py-3">
+        <span class="fs-5 fw-semibold">Productos</span>
+      </div>
+
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4">Código</th>
+                <th>Producto</th>
+                <th class="text-end">Cantidad</th>
+                <th class="text-end">Precio Unit.</th>
+                <th class="text-end pe-4">Importe</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (detalle of venta()!.detalles; track detalle.idProducto) {
+                <tr>
+                  <td class="ps-4">{{ detalle.idProducto }}</td>
+                  <td class="fw-semibold">{{ detalle.nombreProducto }}</td>
+                  <td class="text-end">{{ detalle.cantidad }}</td>
+                  <td class="text-end">Q {{ detalle.precioUnitario.toFixed(2) }}</td>
+                  <td class="text-end pe-4">Q {{ calcularLinea(detalle).toFixed(2) }}</td>
+                </tr>
+              }
+            </tbody>
+
+            <tfoot class="table-light">
+              <tr>
+                <td colspan="4" class="text-end pe-3">Subtotal:</td>
+                <td class="text-end pe-4">Q {{ venta()!.subtotal.toFixed(2) }}</td>
+              </tr>
+              <tr>
+                <td colspan="4" class="text-end pe-3">IVA (12%):</td>
+                <td class="text-end pe-4">Q {{ venta()!.iva.toFixed(2) }}</td>
+              </tr>
+              <tr>
+                <td colspan="4" class="text-end fw-bold pe-3">TOTAL:</td>
+                <td class="text-end fw-bold pe-4">Q {{ venta()!.total.toFixed(2) }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2 justify-content-end">
+      <button type="button" class="btn btn-secondary" (click)="regresar()">
+        Regresar
+      </button>
+      <button type="button" class="btn btn-success" (click)="descargarFactura()">
+        Descargar Factura PDF
+      </button>
+    </div>
+
+  }
+</div>

@@ -1,0 +1,434 @@
+<app-navbar></app-navbar>
+
+<div class="container py-5">
+  <h1 class="text-center mb-4 fw-bold">Reportes</h1>
+
+  <!-- ============ FILTROS GLOBALES ============ -->
+  <div class="card shadow border-0 mb-4">
+    <div class="card-body p-4">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-4">
+          <label for="fechaInicio" class="form-label">Desde</label>
+          <input type="date" class="form-control" id="fechaInicio" name="fechaInicio" [(ngModel)]="fechaInicio">
+        </div>
+        <div class="col-md-4">
+          <label for="fechaFin" class="form-label">Hasta</label>
+          <input type="date" class="form-control" id="fechaFin" name="fechaFin" [(ngModel)]="fechaFin">
+        </div>
+        <div class="col-md-4 d-flex gap-2">
+          <button type="button" class="btn btn-primary w-100" (click)="cargarReportes()">Aplicar filtros</button>
+          <button type="button" class="btn btn-outline-secondary w-100" (click)="limpiarFiltros()">Limpiar</button>
+        </div>
+      </div>
+      <small class="text-muted d-block mt-2">
+        El rango de fechas aplica a todos los reportes, excepto "Menor existencia", que muestra el estado actual.
+      </small>
+    </div>
+  </div>
+
+  @if (mensajeError()) {
+    <div class="alert alert-danger">{{ mensajeError() }}</div>
+  }
+
+  <!-- ============ PESTAÑAS ============ -->
+  <ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="pestana() === 'PRODUCTOS'" (click)="cambiarPestana('PRODUCTOS')">
+        Productos e Inventario
+      </button>
+    </li>
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="pestana() === 'COMPRAS'" (click)="cambiarPestana('COMPRAS')">
+        Compras y Proveedores
+      </button>
+    </li>
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="pestana() === 'VENTAS'" (click)="cambiarPestana('VENTAS')">
+        Ventas y Clientes
+      </button>
+    </li>
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="pestana() === 'LOGS'" (click)="cambiarPestana('LOGS')">
+        Bitácora
+      </button>
+    </li>
+  </ul>
+
+  <!-- ================================================= -->
+  <!-- ============ PRODUCTOS E INVENTARIO ============ -->
+  <!-- ================================================= -->
+  @if (pestana() === 'PRODUCTOS') {
+    <div class="row g-4">
+
+      <div class="col-lg-6">
+        <div class="card shadow border-0 h-100">
+          <div class="card-header bg-primary text-white fw-semibold">Top 10 productos más vendidos</div>
+          <div class="card-body p-0">
+            @if (masVendidos().length > 0) {
+              <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr><th class="ps-3">#</th><th>Producto</th><th class="text-end">Unidades</th><th class="text-end pe-3">Ventas</th></tr>
+                </thead>
+                <tbody>
+                  @for (fila of masVendidos(); track fila.codigo; let i = $index) {
+                    <tr>
+                      <td class="ps-3">{{ i + 1 }}</td>
+                      <td>{{ fila.nombre }} <small class="text-muted">({{ fila.codigo }})</small></td>
+                      <td class="text-end fw-semibold">{{ fila.cantidad }}</td>
+                      <td class="text-end pe-3">{{ fila.conteo }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            } @else {
+              <p class="text-muted text-center py-4 mb-0">Sin datos para el rango seleccionado.</p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card shadow border-0 h-100">
+          <div class="card-header bg-warning fw-semibold">Productos con menor existencia</div>
+          <div class="card-body p-0">
+            @if (menorExistencia().length > 0) {
+              <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr><th class="ps-3">Producto</th><th>Categoría</th><th class="text-end pe-3">Existencia</th></tr>
+                </thead>
+                <tbody>
+                  @for (fila of menorExistencia(); track fila.codigo) {
+                    <tr>
+                      <td class="ps-3">{{ fila.nombre }} <small class="text-muted">({{ fila.codigo }})</small></td>
+                      <td>{{ fila.detalle }}</td>
+                      <td class="text-end pe-3 fw-semibold">{{ fila.cantidad }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            } @else {
+              <p class="text-muted text-center py-4 mb-0">Sin datos.</p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card shadow border-0 h-100">
+          <div class="card-header bg-dark text-white fw-semibold">Productos con mayor cantidad de movimientos</div>
+          <div class="card-body p-0">
+            @if (masMovimientos().length > 0) {
+              <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr><th class="ps-3">#</th><th>Producto</th><th class="text-end">Movimientos</th><th class="text-end pe-3">Unidades</th></tr>
+                </thead>
+                <tbody>
+                  @for (fila of masMovimientos(); track fila.codigo; let i = $index) {
+                    <tr>
+                      <td class="ps-3">{{ i + 1 }}</td>
+                      <td>{{ fila.nombre }} <small class="text-muted">({{ fila.codigo }})</small></td>
+                      <td class="text-end fw-semibold">{{ fila.conteo }}</td>
+                      <td class="text-end pe-3">{{ fila.cantidad }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            } @else {
+              <p class="text-muted text-center py-4 mb-0">Sin datos para el rango seleccionado.</p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card shadow border-0 h-100">
+          <div class="card-header bg-secondary text-white fw-semibold">Historial de movimientos de un producto</div>
+          <div class="card-body">
+            <select class="form-select mb-3" name="productoHistorial" [(ngModel)]="productoHistorial" (ngModelChange)="cargarHistorial()">
+              <option value="">Seleccione un producto</option>
+              @for (prod of productos(); track prod.idProducto) {
+                <option [value]="prod.idProducto">{{ prod.idProducto }} - {{ prod.nombreProducto }}</option>
+              }
+            </select>
+
+            @if (productoHistorial === '') {
+              <p class="text-muted text-center mb-0">Seleccione un producto para ver su historial.</p>
+            } @else if (historial().length > 0) {
+              <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr><th>Fecha</th><th>Tipo</th><th class="text-end">Cantidad</th><th>Origen</th></tr>
+                </thead>
+                <tbody>
+                  @for (mov of historial(); track mov.idMovimiento) {
+                    <tr>
+                      <td>{{ fecha(mov.fecha) }}</td>
+                      <td>
+                        <span class="badge" [ngClass]="mov.tipoMovimiento === 'ENTRADA' ? 'bg-success' : 'bg-danger'">
+                          {{ mov.tipoMovimiento }}
+                        </span>
+                      </td>
+                      <td class="text-end">{{ mov.cantidad }}</td>
+                      <td>{{ mov.origen }} No. {{ mov.idReferencia }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            } @else {
+              <p class="text-muted text-center mb-0">Sin movimientos para el rango seleccionado.</p>
+            }
+          </div>
+        </div>
+      </div>
+
+    </div>
+  }
+
+  <!-- ================================================= -->
+  <!-- ============ COMPRAS Y PROVEEDORES ============= -->
+  <!-- ================================================= -->
+  @if (pestana() === 'COMPRAS') {
+    <div class="row g-4">
+
+      <div class="col-12">
+        <div class="card shadow border-0">
+          <div class="card-header bg-primary text-white fw-semibold">
+            Compras en el rango ({{ compras().length }}) — Total: {{ moneda(totalCompras()) }}
+          </div>
+          <div class="card-body p-0">
+            @if (compras().length > 0) {
+              <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                  <thead class="table-light">
+                    <tr><th class="ps-3">No.</th><th>Fecha</th><th>Proveedor</th><th>Registró</th><th class="text-end pe-3">Total</th></tr>
+                  </thead>
+                  <tbody>
+                    @for (compra of compras(); track compra.idCompra) {
+                      <tr>
+                        <td class="ps-3">{{ compra.idCompra }}</td>
+                        <td>{{ fecha(compra.fecha) }}</td>
+                        <td>{{ compra.nombreProveedor }}</td>
+                        <td>{{ compra.idUsuario }}</td>
+                        <td class="text-end pe-3">{{ moneda(compra.total) }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <p class="text-muted text-center py-4 mb-0">No hay compras en el rango seleccionado.</p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card shadow border-0 h-100">
+          <div class="card-header bg-success text-white fw-semibold">Top 5 proveedores por monto de compras</div>
+          <div class="card-body p-0">
+            @if (topProveedores().length > 0) {
+              <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr><th class="ps-3">#</th><th>Proveedor</th><th class="text-end">Compras</th><th class="text-end pe-3">Monto</th></tr>
+                </thead>
+                <tbody>
+                  @for (fila of topProveedores(); track fila.codigo; let i = $index) {
+                    <tr>
+                      <td class="ps-3">{{ i + 1 }}</td>
+                      <td>{{ fila.nombre }} <small class="text-muted">({{ fila.codigo }})</small></td>
+                      <td class="text-end">{{ fila.conteo }}</td>
+                      <td class="text-end pe-3 fw-semibold">{{ moneda(fila.monto) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            } @else {
+              <p class="text-muted text-center py-4 mb-0">Sin datos para el rango seleccionado.</p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card shadow border-0 h-100">
+          <div class="card-header bg-dark text-white fw-semibold">Productos adquiridos con mayor frecuencia</div>
+          <div class="card-body p-0">
+            @if (masAdquiridos().length > 0) {
+              <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr><th class="ps-3">#</th><th>Producto</th><th class="text-end">Veces comprado</th><th class="text-end pe-3">Unidades</th></tr>
+                </thead>
+                <tbody>
+                  @for (fila of masAdquiridos(); track fila.codigo; let i = $index) {
+                    <tr>
+                      <td class="ps-3">{{ i + 1 }}</td>
+                      <td>{{ fila.nombre }} <small class="text-muted">({{ fila.codigo }})</small></td>
+                      <td class="text-end fw-semibold">{{ fila.conteo }}</td>
+                      <td class="text-end pe-3">{{ fila.cantidad }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            } @else {
+              <p class="text-muted text-center py-4 mb-0">Sin datos para el rango seleccionado.</p>
+            }
+          </div>
+        </div>
+      </div>
+
+    </div>
+  }
+
+  <!-- ================================================= -->
+  <!-- ============ VENTAS Y CLIENTES ================= -->
+  <!-- ================================================= -->
+  @if (pestana() === 'VENTAS') {
+    <div class="row g-4">
+
+      <div class="col-12">
+        <div class="card shadow border-0">
+          <div class="card-header bg-primary text-white fw-semibold">
+            Ventas en el rango ({{ ventas().length }}) — Total: {{ moneda(totalVentas()) }}
+          </div>
+          <div class="card-body p-0">
+            @if (ventas().length > 0) {
+              <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                  <thead class="table-light">
+                    <tr><th class="ps-3">No.</th><th>Fecha</th><th>Cliente</th><th>Vendedor</th><th class="text-end">Subtotal</th><th class="text-end">IVA</th><th class="text-end pe-3">Total</th></tr>
+                  </thead>
+                  <tbody>
+                    @for (venta of ventas(); track venta.idVenta) {
+                      <tr>
+                        <td class="ps-3">{{ venta.idVenta }}</td>
+                        <td>{{ fecha(venta.fecha) }}</td>
+                        <td>{{ venta.nombreCliente }}</td>
+                        <td>{{ venta.nombreUsuario }}</td>
+                        <td class="text-end">{{ moneda(venta.subtotal) }}</td>
+                        <td class="text-end">{{ moneda(venta.iva) }}</td>
+                        <td class="text-end pe-3 fw-semibold">{{ moneda(venta.total) }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <p class="text-muted text-center py-4 mb-0">No hay ventas en el rango seleccionado.</p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card shadow border-0 h-100">
+          <div class="card-header bg-success text-white fw-semibold">Top 10 clientes por monto de compras</div>
+          <div class="card-body p-0">
+            @if (topClientes().length > 0) {
+              <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr><th class="ps-3">#</th><th>Cliente</th><th class="text-end">Compras</th><th class="text-end pe-3">Monto</th></tr>
+                </thead>
+                <tbody>
+                  @for (fila of topClientes(); track fila.codigo; let i = $index) {
+                    <tr>
+                      <td class="ps-3">{{ i + 1 }}</td>
+                      <td>{{ fila.nombre }} <small class="text-muted">(NIT {{ fila.detalle }})</small></td>
+                      <td class="text-end">{{ fila.conteo }}</td>
+                      <td class="text-end pe-3 fw-semibold">{{ moneda(fila.monto) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            } @else {
+              <p class="text-muted text-center py-4 mb-0">Sin datos para el rango seleccionado.</p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card shadow border-0 h-100">
+          <div class="card-header bg-dark text-white fw-semibold">Top 10 productos por ingresos</div>
+          <div class="card-body p-0">
+            @if (mayoresIngresos().length > 0) {
+              <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr><th class="ps-3">#</th><th>Producto</th><th class="text-end">Unidades</th><th class="text-end pe-3">Ingresos</th></tr>
+                </thead>
+                <tbody>
+                  @for (fila of mayoresIngresos(); track fila.codigo; let i = $index) {
+                    <tr>
+                      <td class="ps-3">{{ i + 1 }}</td>
+                      <td>{{ fila.nombre }} <small class="text-muted">({{ fila.codigo }})</small></td>
+                      <td class="text-end">{{ fila.cantidad }}</td>
+                      <td class="text-end pe-3 fw-semibold">{{ moneda(fila.monto) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            } @else {
+              <p class="text-muted text-center py-4 mb-0">Sin datos para el rango seleccionado.</p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="card shadow border-0">
+          <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">Resumen de ventas por período</span>
+            <select class="form-select form-select-sm w-auto" name="agrupacion" [(ngModel)]="agrupacion" (ngModelChange)="cargarResumen()">
+              <option value="DIA">Por día</option>
+              <option value="MES">Por mes</option>
+              <option value="ANIO">Por año</option>
+            </select>
+          </div>
+          <div class="card-body p-0">
+            @if (resumen().length > 0) {
+              <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr><th class="ps-3">Período</th><th class="text-end">Ventas</th><th class="text-end">Subtotal</th><th class="text-end">IVA</th><th class="text-end pe-3">Total</th></tr>
+                </thead>
+                <tbody>
+                  @for (fila of resumen(); track fila.periodo) {
+                    <tr>
+                      <td class="ps-3 fw-semibold">{{ fila.periodo }}</td>
+                      <td class="text-end">{{ fila.numeroVentas }}</td>
+                      <td class="text-end">{{ moneda(fila.subtotal) }}</td>
+                      <td class="text-end">{{ moneda(fila.iva) }}</td>
+                      <td class="text-end pe-3">{{ moneda(fila.total) }}</td>
+                    </tr>
+                  }
+                </tbody>
+                <tfoot class="table-light">
+                  <tr>
+                    <td class="ps-3 fw-bold">TOTAL</td>
+                    <td class="text-end fw-bold">{{ totalResumenVentas() }}</td>
+                    <td colspan="2"></td>
+                    <td class="text-end pe-3 fw-bold">{{ moneda(totalResumenMonto()) }}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            } @else {
+              <p class="text-muted text-center py-4 mb-0">Sin datos para el rango seleccionado.</p>
+            }
+          </div>
+        </div>
+      </div>
+
+    </div>
+  }
+
+  @if (pestana() === 'LOGS') {
+    <div class="card shadow border-0">
+      <div class="card-body text-center py-5">
+        <h5 class="fw-semibold">Reporte de interacciones de usuarios</h5>
+        <p class="text-muted">
+          La bitácora registra inicios de sesión, creaciones, actualizaciones, desactivaciones,
+          compras, ventas y facturas generadas, con filtros por módulo y fechas.
+        </p>
+        <a routerLink="/bitacora" class="btn btn-primary">Abrir Bitácora</a>
+      </div>
+    </div>
+  }
+
+</div>

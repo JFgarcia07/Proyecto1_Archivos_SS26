@@ -1,0 +1,161 @@
+<app-navbar></app-navbar>
+
+<div class="container py-5">
+  <h1 class="text-center mb-4 fw-bold">Nueva Venta</h1>
+
+  <!-- CLIENTE -->
+  <div class="card shadow border-0 mb-4">
+    <div class="card-header bg-primary text-white py-3">
+      <span class="fs-5 fw-semibold">Datos de la Venta</span>
+    </div>
+
+    <div class="card-body p-4">
+      <label for="idCliente" class="form-label">Cliente</label>
+      <select class="form-select" id="idCliente" name="idCliente" [(ngModel)]="idCliente">
+        <option value="">Seleccione un cliente</option>
+        @for (cli of clientes(); track cli.idCliente) {
+          <option [value]="cli.idCliente">{{ cli.nombre }} — NIT {{ cli.nit }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <!-- AGREGAR PRODUCTOS -->
+  <div class="card shadow border-0 mb-4">
+    <div class="card-header bg-secondary text-white py-3">
+      <span class="fs-5 fw-semibold">Agregar Productos</span>
+    </div>
+
+    <div class="card-body p-4">
+      <div class="row g-3 align-items-end">
+
+        <div class="col-md-5">
+          <label for="producto" class="form-label">Producto</label>
+          <select
+            class="form-select"
+            id="producto"
+            name="producto"
+            [(ngModel)]="idProductoSeleccionado"
+            (ngModelChange)="alSeleccionarProducto()">
+            <option value="">Seleccione un producto</option>
+            @for (prod of productos(); track prod.idProducto) {
+              <option [value]="prod.idProducto" [disabled]="prod.stock <= 0">
+                {{ prod.idProducto }} - {{ prod.nombreProducto }}
+                @if (prod.stock <= 0) { (sin existencia) }
+              </option>
+            }
+          </select>
+        </div>
+
+        <div class="col-md-2">
+          <label class="form-label">Precio</label>
+          <input type="text" class="form-control" [value]="'Q ' + precioSeleccionado().toFixed(2)" disabled>
+        </div>
+
+        <div class="col-md-2">
+          <label class="form-label">Disponible</label>
+          <input type="text" class="form-control" [value]="stockSeleccionado()" disabled>
+        </div>
+
+        <div class="col-md-2">
+          <label for="cantidad" class="form-label">Cantidad</label>
+          <input type="number" class="form-control" id="cantidad" name="cantidad" min="1" [(ngModel)]="cantidad">
+        </div>
+
+        <div class="col-md-1">
+          <button type="button" class="btn btn-success w-100" (click)="agregarProducto()">
+            +
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- DETALLE -->
+  <div class="card shadow border-0 mb-4">
+    <div class="card-header bg-dark text-white py-3">
+      <span class="fs-5 fw-semibold">Detalle de la Venta</span>
+    </div>
+
+    <div class="card-body p-0">
+
+      @if (detalles().length > 0) {
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4">Código</th>
+                <th>Producto</th>
+                <th class="text-end">Cantidad</th>
+                <th class="text-end">Precio Unit.</th>
+                <th class="text-end">Importe</th>
+                <th class="text-end pe-4">Acción</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (detalle of detalles(); track detalle.idProducto) {
+                <tr>
+                  <td class="ps-4">{{ detalle.idProducto }}</td>
+                  <td class="fw-semibold">{{ detalle.nombreProducto }}</td>
+                  <td class="text-end">{{ detalle.cantidad }}</td>
+                  <td class="text-end">Q {{ detalle.precioUnitario.toFixed(2) }}</td>
+                  <td class="text-end">Q {{ calcularLinea(detalle).toFixed(2) }}</td>
+                  <td class="text-end pe-4">
+                    <button type="button" class="btn btn-danger btn-sm" (click)="quitarProducto(detalle.idProducto)">
+                      Quitar
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+
+            <tfoot class="table-light">
+              <tr>
+                <td colspan="4" class="text-end pe-3">Subtotal:</td>
+                <td class="text-end">Q {{ calcularSubtotal().toFixed(2) }}</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td colspan="4" class="text-end pe-3">IVA (12%):</td>
+                <td class="text-end">Q {{ calcularIva().toFixed(2) }}</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td colspan="4" class="text-end fw-bold pe-3">TOTAL:</td>
+                <td class="text-end fw-bold">Q {{ calcularTotal().toFixed(2) }}</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      } @else {
+        <div class="text-center py-5">
+          <p class="text-muted mb-0">Aún no se han agregado productos a esta venta.</p>
+        </div>
+      }
+
+    </div>
+  </div>
+
+  @if (mensajeError()) {
+    <div class="alert alert-danger py-2">
+      {{ mensajeError() }}
+    </div>
+  }
+
+  <div class="d-flex gap-2 justify-content-end">
+    <button type="button" class="btn btn-secondary" (click)="cancelar()">
+      Cancelar
+    </button>
+    <button type="button" class="btn btn-primary" [disabled]="guardando()" (click)="guardar()">
+      @if (guardando()) {
+        Guardando...
+      } @else {
+        Registrar Venta
+      }
+    </button>
+  </div>
+
+</div>

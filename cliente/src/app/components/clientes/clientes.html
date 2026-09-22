@@ -1,0 +1,122 @@
+<app-navbar></app-navbar>
+
+<div class="container py-5">
+  <h1 class="text-center mb-4 fw-bold">Gestor de Clientes</h1>
+
+  <!-- ============ CLIENTES ACTIVOS ============ -->
+  <div class="card shadow border-0">
+
+    <div class="card-header bg-primary text-white py-3">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+        <span class="fs-5 fw-semibold">Lista de Clientes</span>
+
+        <a routerLink="/crear-cliente" class="btn btn-light btn-sm shadow-sm">
+          Nuevo Cliente
+        </a>
+      </div>
+    </div>
+
+    <div class="card-body p-0">
+
+      @if (cargando()) {
+        <div class="text-center py-5">
+          <p class="text-muted mb-0">Cargando clientes...</p>
+        </div>
+      } @else if (mensajeError()) {
+        <div class="text-center py-5">
+          <p class="text-danger mb-0">{{ mensajeError() }}</p>
+        </div>
+      } @else if (clientes().length > 0) {
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4">Código</th>
+                <th>Nombre</th>
+                <th>NIT</th>
+                <th class="text-end">Saldo</th>
+                <th class="text-end pe-4">Acciones</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (cliente of clientes(); track cliente.idCliente) {
+                <tr>
+                  <td class="ps-4">{{ cliente.idCliente }}</td>
+                  <td class="fw-semibold">{{ cliente.nombre }}</td>
+                  <td>{{ cliente.nit }}</td>
+                  <td class="text-end">Q {{ cliente.saldo.toFixed(2) }}</td>
+                  <td class="text-end pe-4">
+                    <div class="btn-group" role="group">
+                      <a [routerLink]="['/editar-cliente', cliente.idCliente]" class="btn btn-primary btn-sm">
+                        Editar
+                      </a>
+                      <button
+                        type="button"
+                        class="btn btn-danger btn-sm"
+                        (click)="desactivar(cliente.idCliente, cliente.nombre)">
+                        Desactivar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="text-center py-5">
+          <p class="text-muted mb-0">No hay clientes registrados.</p>
+        </div>
+      }
+
+    </div>
+  </div>
+
+  <!-- ============ CLIENTES DESACTIVADOS ============ -->
+  <div class="card shadow border-0 mt-4">
+
+    <div class="card-header bg-secondary text-white py-3">
+      <span class="fs-5 fw-semibold">Clientes Desactivados</span>
+    </div>
+
+    <div class="card-body p-0">
+
+      @if (cargandoInactivos()) {
+        <div class="text-center py-4">
+          <p class="text-muted mb-0">Cargando...</p>
+        </div>
+      } @else if (clientesInactivos().length > 0) {
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4">Código</th>
+                <th>Nombre</th>
+                <th>NIT</th>
+                <th class="text-end pe-4">Saldo</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (cliente of clientesInactivos(); track cliente.idCliente) {
+                <tr class="text-muted">
+                  <td class="ps-4">{{ cliente.idCliente }}</td>
+                  <td>{{ cliente.nombre }}</td>
+                  <td>{{ cliente.nit }}</td>
+                  <td class="text-end pe-4">Q {{ cliente.saldo.toFixed(2) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="text-center py-4">
+          <p class="text-muted mb-0">No hay clientes desactivados.</p>
+        </div>
+      }
+
+    </div>
+  </div>
+
+</div>

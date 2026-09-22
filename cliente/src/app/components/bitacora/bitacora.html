@@ -1,0 +1,103 @@
+<app-navbar></app-navbar>
+
+<div class="container py-5">
+  <h1 class="text-center mb-4 fw-bold">Bitácora del Sistema</h1>
+
+  <!-- FILTROS -->
+  <div class="card shadow border-0 mb-4">
+    <div class="card-header bg-secondary text-white py-3">
+      <span class="fs-5 fw-semibold">Filtros</span>
+    </div>
+
+    <div class="card-body p-4">
+      <div class="row g-3 align-items-end">
+
+        <div class="col-md-3">
+          <label for="modulo" class="form-label">Módulo</label>
+          <select class="form-select" id="modulo" name="modulo" [(ngModel)]="modulo">
+            <option value="">Todos</option>
+            @for (mod of modulos; track mod) {
+              <option [value]="mod">{{ mod }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label for="fechaInicio" class="form-label">Desde</label>
+          <input type="date" class="form-control" id="fechaInicio" name="fechaInicio" [(ngModel)]="fechaInicio">
+        </div>
+
+        <div class="col-md-3">
+          <label for="fechaFin" class="form-label">Hasta</label>
+          <input type="date" class="form-control" id="fechaFin" name="fechaFin" [(ngModel)]="fechaFin">
+        </div>
+
+        <div class="col-md-3 d-flex gap-2">
+          <button type="button" class="btn btn-primary w-100" (click)="cargarLogs()">
+            Filtrar
+          </button>
+          <button type="button" class="btn btn-outline-secondary w-100" (click)="limpiarFiltros()">
+            Limpiar
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div class="card shadow border-0">
+    <div class="card-header bg-primary text-white py-3">
+      <span class="fs-5 fw-semibold">Registros ({{ logs().length }})</span>
+    </div>
+
+    <div class="card-body p-0">
+
+      @if (cargando()) {
+        <div class="text-center py-5">
+          <p class="text-muted mb-0">Cargando bitácora...</p>
+        </div>
+      } @else if (mensajeError()) {
+        <div class="text-center py-5">
+          <p class="text-danger mb-0">{{ mensajeError() }}</p>
+        </div>
+      } @else if (logs().length > 0) {
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4">Fecha</th>
+                <th>Usuario</th>
+                <th>Módulo</th>
+                <th>Acción</th>
+                <th class="pe-4">Detalle</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (log of logs(); track log.idLog) {
+                <tr>
+                  <td class="ps-4 text-nowrap">{{ formatearFecha(log.fecha) }}</td>
+                  <td class="text-nowrap">
+                    <span class="fw-semibold">{{ log.nombreUsuario }}</span><br>
+                    <small class="text-muted">{{ log.idUsuario }}</small>
+                  </td>
+                  <td>{{ log.modulo }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="claseAccion(log.accion)">{{ log.accion }}</span>
+                  </td>
+                  <td class="pe-4">{{ log.detalle }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="text-center py-5">
+          <p class="text-muted mb-0">No hay registros para los filtros seleccionados.</p>
+        </div>
+      }
+
+    </div>
+  </div>
+</div>
