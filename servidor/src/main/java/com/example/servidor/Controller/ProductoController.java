@@ -13,14 +13,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.servidor.Model.Producto;
 import com.example.servidor.Services.ProductoService;
+import com.example.servidor.Services.LogService;
 
 @RestController 
 @RequestMapping ("/api/productos")
 public class ProductoController {
     private final ProductoService productoService;
+    private final LogService logService;
 
-    public ProductoController(ProductoService productoService) {
+    public ProductoController(ProductoService productoService, LogService logService) {
         this.productoService = productoService;
+        this.logService = logService;
     }
 
     @GetMapping 
@@ -52,6 +55,8 @@ public class ProductoController {
         if (error != null) {
             return ResponseEntity.badRequest().body(error);
         }
+        logService.registrar(LogService.ACCION_CREAR, LogService.MODULO_PRODUCTOS,
+            "Creo el producto " + producto.getIdProducto() + " - " + producto.getNombreProducto());
         return ResponseEntity.ok("Producto creado correctamente");
     }
 
@@ -63,6 +68,8 @@ public class ProductoController {
         if (error != null) {
             return ResponseEntity.badRequest().body(error);
         }
+        logService.registrar(LogService.ACCION_ACTUALIZAR, LogService.MODULO_PRODUCTOS,
+            "Actualizo el producto " + id + " - " + producto.getNombreProducto());
         return ResponseEntity.ok("Producto actualizado correctamente");
     }
 
@@ -73,6 +80,8 @@ public class ProductoController {
         if (error != null) {
             return ResponseEntity.badRequest().body(error);
         }
+        logService.registrar(LogService.ACCION_DESACTIVAR, LogService.MODULO_PRODUCTOS,
+            "Desactivo el producto " + id);
         return ResponseEntity.ok("Producto desactivado correctamente");
     }
 }

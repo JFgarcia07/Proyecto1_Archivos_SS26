@@ -12,15 +12,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.servidor.Model.Compra;
 import com.example.servidor.Services.CompraService;
+import com.example.servidor.Services.LogService;
 
 @RestController
 @RequestMapping("/api/compras")
 public class CompraController {
     
     private final CompraService compraService;
+    private final LogService logService;
 
-    public CompraController(CompraService compraService) {
+    public CompraController(CompraService compraService, LogService logService) {
         this.compraService = compraService;
+        this.logService = logService;
     }
 
     @GetMapping
@@ -45,6 +48,10 @@ public class CompraController {
         if (error != null) {
             return ResponseEntity.badRequest().body(error);
         }
+        logService.registrar(LogService.ACCION_REGISTRAR, LogService.MODULO_COMPRAS,
+            "Registro la compra No. " + compra.getIdCompra() +
+            " al proveedor " + compra.getIdProveedor() +
+            " por " + logService.formatearMonto(compra.getTotal()));
         return ResponseEntity.ok("Compra registrada correctamente");
     }
 }

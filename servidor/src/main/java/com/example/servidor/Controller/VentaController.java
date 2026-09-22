@@ -3,6 +3,7 @@ package com.example.servidor.Controller;
 import com.example.servidor.Model.Venta;
 import com.example.servidor.Services.FacturaService;
 import com.example.servidor.Services.VentaService;
+import com.example.servidor.Services.LogService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+
 import java.util.List;
 
 @RestController
@@ -22,10 +24,12 @@ public class VentaController {
     
     private final VentaService ventaService;
     private final FacturaService facturaService;
+    private final LogService logService;
 
-    public VentaController(VentaService ventaService, FacturaService facturaService) {
+    public VentaController(VentaService ventaService, FacturaService facturaService, LogService logService) {
         this.ventaService = ventaService;
         this.facturaService = facturaService;
+        this.logService = logService;
     }
 
     @GetMapping
@@ -54,6 +58,10 @@ public class VentaController {
         if (error != null) {
             return ResponseEntity.badRequest().body(error);
         }
+        logService.registrar(LogService.ACCION_REGISTRAR, LogService.MODULO_VENTAS,
+            "Registro la venta No. " + venta.getIdVenta() +
+            " al cliente " + venta.getIdCliente() +
+            " por " + logService.formatearMonto(venta.getTotal()));
         return ResponseEntity.ok(String.valueOf(venta.getIdVenta()));
     }
 
@@ -72,6 +80,8 @@ public class VentaController {
         headers.setContentType(MediaType.APPLICATION_PDF);
         headers.setContentDispositionFormData("attachment", "factura_" + id + ".pdf");
 
+        logService.registrar(LogService.ACCION_GENERAR_FACTURA, LogService.MODULO_VENTAS,
+            "Genero la factura de la venta No. " + id);
         return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
     }
 }
